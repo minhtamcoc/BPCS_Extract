@@ -1,0 +1,94 @@
+#!/bin/bash
+set -u
+LAB="bpcs_extract"
+BASE="/home/student/labtainer/trunk/scripts/labtainer-student"
+OUTDIR="/home/student/labtainer_xfer/$LAB"
+ORIG="$BASE/bin/stoplab.labtainer_original"
+
+find_bpcs_container() {
+    docker ps --format '{{.Names}} {{.Image}}' 2>/dev/null | awk '
+        $1 !~ /-igrader$/ && ($1 ~ /^bpcs_extract/ || $2 ~ /bpcs_extract[.]bpcs_extract[.]student/) { print $1; exit }
+    '
+}
+
+student_id_from_prompt() {
+    local sid=""
+    if [ -f "$OUTDIR/student_id.txt" ]; then
+        sid="$(head -n 1 "$OUTDIR/student_id.txt" | tr -d '\r\n')"
+    fi
+    if [ -z "$sid" ]; then
+        sid="$(find /home/student/labtainer_xfer -maxdepth 2 -type f -name '*.lab' 2>/dev/null | sed -n 's#.*/\([^./]*\)\..*\.lab#\1#p' | head -n 1)"
+    fi
+    if [ -z "$sid" ] || [ "$sid" = "student" ]; then
+        printf "Enter student ID for result file [student]: " >&2
+        read sid || sid="student"
+        [ -z "$sid" ] && sid="student"
+    fi
+    mkdir -p "$OUTDIR"
+    echo "$sid" > "$OUTDIR/student_id.txt"
+    echo "$sid"
+}
+
+save_bpcs_results() {
+    local cname="$1"
+    local sid="$2"
+    mkdir -p "$OUTDIR"
+    local tmp
+    tmp="$(mktemp -d /tmp/bpcs_extract_stoplab.XXXXXX)" || exit 1
+
+    "$BASE/bin/checkwork" "$LAB" > "$OUTDIR/${LAB}_grades.txt" 2>&1 || true
+
+    for item in video_info.txt audio.mp3 position.txt output.avi recovered_secret.txt encode.py decode.py; do
+        docker cp "$cname:/home/student/$item" "$tmp/$item" >/dev/null 2>&1 || \
+            docker cp "$cname:/home/ubuntu/$item" "$tmp/$item" >/dev/null 2>&1 || true
+    done
+
+    docker exec "$cname" bash -c 'cd /home/student 2>/dev/null || cd /home/ubuntu 2>/dev/null || exit 0; [ -d frames ] && tar -czf /tmp/bpcs_frames.tar.gz frames; [ -d extract_frames ] && tar -czf /tmp/bpcs_extract_frames.tar.gz extract_frames' >/dev/null 2>&1 || true
+    docker cp "$cname:/tmp/bpcs_frames.tar.gz" "$tmp/frames.tar.gz" >/dev/null 2>&1 || true
+    docker cp "$cname:/tmp/bpcs_extract_frames.tar.gz" "$tmp/extract_frames.tar.gz" >/dev/null 2>&1 || true
+    cp "$OUTDIR/${LAB}_grades.txt" "$tmp/${LAB}_grades.txt" 2>/dev/null || true
+
+    rm -f "$OUTDIR/${sid}.${LAB}.lab"
+    if command -v zip >/dev/null 2>&1; then
+        (cd "$tmp" && zip -qr "$OUTDIR/${sid}.${LAB}.lab" .)
+    else
+        (cd "$tmp" && tar -czf "$OUTDIR/${sid}.${LAB}.lab" .)
+    fi
+    rm -rf "$tmp"
+
+    echo "Results stored in directory: $OUTDIR"
+}
+
+if [ "${1:-}" = "$LAB" ] || [ -z "${1:-}" ]; then
+    cname="$(find_bpcs_container)"
+    if [ -n "$cname" ]; then
+        sid="$(student_id_from_prompt)"
+        save_bpcs_results "$cname" "$sid"
+        docker rm -f "$cname" >/dev/null 2>&1 || true
+        docker rm -f "${LAB}-igrader" >/dev/null 2>&1 || true
+        exit 0
+    elif [ "${1:-}" = "$LAB" ]; then
+        mkdir -p "$OUTDIR"
+        sid="$(student_id_from_prompt)"
+        "$BASE/bin/checkwork" "$LAB" > "$OUTDIR/${LAB}_grades.txt" 2>&1 || true
+        rm -f "$OUTDIR/${sid}.${LAB}.lab"
+        tmp="$(mktemp -d /tmp/bpcs_extract_stoplab_empty.XXXXXX)" || exit 1
+        cp "$OUTDIR/${LAB}_grades.txt" "$tmp/${LAB}_grades.txt" 2>/dev/null || true
+        if command -v zip >/dev/null 2>&1; then
+            (cd "$tmp" && zip -qr "$OUTDIR/${sid}.${LAB}.lab" .)
+        else
+            (cd "$tmp" && tar -czf "$OUTDIR/${sid}.${LAB}.lab" .)
+        fi
+        rm -rf "$tmp"
+        docker rm -f "${LAB}-igrader" >/dev/null 2>&1 || true
+        echo "Results stored in directory: $OUTDIR"
+        exit 0
+    fi
+fi
+
+if [ -x "$ORIG" ]; then
+    cd "$BASE" || exit 1
+    exec "$ORIG" "$@"
+fi
+cd "$BASE" || exit 1
+exec bash -lc 'stop.py "$@"' bash "$@"
