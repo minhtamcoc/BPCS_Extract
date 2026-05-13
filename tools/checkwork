@@ -75,6 +75,10 @@ if [ "${1:-}" = "$LAB" ] || [ -z "${1:-}" ]; then
         exit 0
     elif [ "${1:-}" = "$LAB" ]; then
         mkdir -p "$OUTDIR"
+        if [ -f "$OUTDIR/${LAB}_grades.txt" ]; then
+            cat "$OUTDIR/${LAB}_grades.txt"
+            exit 0
+        fi
         echo "Results stored in directory: $OUTDIR"
         echo "Labname $LAB"
         echo
