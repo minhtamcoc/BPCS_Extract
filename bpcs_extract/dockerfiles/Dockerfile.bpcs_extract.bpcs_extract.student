@@ -27,9 +27,11 @@ RUN apt-get update && apt-get install -y \
     nano \
     tar \
     zip \
-    python3-opencv \
-    python3-numpy \
-    python3-pil
+    libglib2.0-0 \
+    libgl1 \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN pip3 install --no-cache-dir numpy opencv-python-headless
 
 USER $user_name
 ENV HOME /home/$user_name

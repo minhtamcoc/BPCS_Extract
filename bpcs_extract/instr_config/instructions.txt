@@ -1,0 +1,12 @@
+Lab-specific instructor notes.
+
+This lab follows the native Labtainer grading format:
+results.config defines the collected artifacts, and goals.config maps
+those artifacts to cw1 through cw5.
+
+Expected checks:
+cw1: student saved ffmpeg video information to video_info.txt.
+cw2: student extracted video frames to frames/frame_%04d.png.
+cw3: student extracted the audio stream to audio.mp3.
+cw4: student ran encode.py and created position.txt.
+cw5: student ran decode.py and recovered the expected secret.

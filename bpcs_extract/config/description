@@ -1,1 +1,0 @@
-Hide and extract secret data in video frames using a BPCS bit-plane method. Students inspect the video, extract frames/audio with ffmpeg, edit encode.py/decode.py, and recover the hidden message.

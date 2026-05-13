@@ -1,6 +1,6 @@
-# bpcs_extract
+# BPCS_Extract
 
-Labtainer lab for video steganography with BPCS bit-plane complexity embedding and extraction.
+Native Labtainer lab for video steganography using a BPCS bit-plane method.
 
 ## Install
 
@@ -8,20 +8,21 @@ From the Labtainer student VM:
 
 ~~~bash
 cd /home/student/labtainer/trunk/scripts/labtainer-student
-imodule https://github.com/<github-user>/<repo>/raw/main/bpcs_extract.tar.gz
+imodule https://github.com/minhtamcoc/BPCS_Extract/raw/main/bpcs_extract.tar.gz
 labtainer bpcs_extract
 ~~~
 
-## Student Workflow
+## Lab Format
 
-The lab guides students through:
+This release follows the normal Labtainer structure used by labs such as gdblesson:
 
-1. Inspecting technical metadata of video.mp4.
-2. Extracting video frames and audio with ffmpeg.
-3. Hiding a secret message using encode.py.
-4. Extracting frames from the stego video.
-5. Recovering the hidden message with decode.py.
+- config/start.config
+- config/parameter.config
+- config/about.txt
+- config/keywords.txt
+- instr_config/results.config
+- instr_config/goals.config
+- instr_config/instructions.txt
+- docs/read_first.txt
 
-## Notes
-
-The packaged lab includes the Labtainer source folder and bpcs_extract.tar.gz for direct installation with imodule.
+checkwork and stoplab use the original Labtainer scripts. No custom wrapper is required.

@@ -1,0 +1,1 @@
+BPCS video steganography lab. Students inspect a video, extract frames and audio with ffmpeg, hide a message with encode.py, and recover it with decode.py.

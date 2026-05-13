@@ -1,0 +1,28 @@
+BPCS Extract Lab
+
+This lab practices hiding and extracting a secret message in video frames
+using a BPCS bit-plane method.
+
+Main workflow:
+1. Save video metadata:
+   ffmpeg -hide_banner -i video.mp4 2> video_info.txt
+
+2. Extract video frames and audio:
+   mkdir frames
+   ffmpeg -i video.mp4 frames/frame_%04d.png
+   ffmpeg -hide_banner -i video.mp4 -q:a 0 -map a audio.mp3
+
+3. Edit and run encode.py:
+   nano encode.py
+   python3 encode.py
+
+4. Extract frames from output.avi:
+   mkdir extract_frames
+   ffmpeg -hide_banner -i output.avi extract_frames/frame_%04d.png
+
+5. Edit and run decode.py:
+   nano decode.py
+   python3 decode.py
+
+Use Labtainer checkwork from the Labtainer terminal to view cw1 through cw5.
+Use stoplab bpcs_extract to save the .lab result archive.
