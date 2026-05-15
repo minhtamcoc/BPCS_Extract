@@ -10,6 +10,7 @@ ARG apt_source
 ARG version
 
 LABEL version=$version
+LABEL base="$registry/labtainer.base2.739eee77f8d3"
 ENV APT_SOURCE $apt_source
 RUN /usr/bin/apt-source.sh
 
